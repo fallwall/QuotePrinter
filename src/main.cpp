@@ -4,46 +4,23 @@
 #include <Adafruit_Thermal.h>
 #include <FS.h>
 
-#define BAUDRATE 19200
-
-int button = 5;
-int lineNo = 0;
-Adafruit_Thermal printer(&Serial);
-File quoteFile;
-File markerFile;
+const int BAUDRATE = 19200;
+const int BUTTON_GPIO = 5;
+const int MAX_COL_NUM = 31;
+const int NUM_LINES_AFTER_QUOTE = 4;
 
 const int WORKSPACE_SIZE = 2048;
-const int MAX_COL_NUM = 31;
+
+Adafruit_Thermal printer(&Serial);
 char* workspace;
 
 void setup()
 {
-    pinMode(button, INPUT);
+    pinMode(BUTTON_GPIO, INPUT);
 
     Serial.begin(BAUDRATE);
 
     SPIFFS.begin();
-    quoteFile = SPIFFS.open("/quotes.txt", "r");
-    if (!quoteFile)
-    {
-        Serial.println("Failed to open quote file!");
-        // TODO panic and quit, set a light red, etc.
-    }
-
-    // Read the number in the marker.txt file
-    // This number is the line number in quotes.txt to start printing from
-    // (It gets updated after every print job)
-    markerFile = SPIFFS.open("/marker.txt", "r");
-    lineNo = markerFile.parseInt();
-    markerFile.close();
-
-    // Serial.print("line no: ");
-    // Serial.println(lineNo);
-
-    for (int i = 0; i < lineNo; i++)
-    {
-        quoteFile.readStringUntil('\n');
-    }
 
     // Set up buffer for formatter function
     workspace = (char*) malloc(WORKSPACE_SIZE); // 2k should be plenty...longest I've seen so far is less than 512
@@ -97,24 +74,53 @@ String prettyFormat(String ugly)
         curWord = strtok(NULL, " \n");
     }
 
-    return rtn + "\n";
+    return rtn;
 }
 
 void loop()
 {
-    if (digitalRead(button) == HIGH)
+    if (digitalRead(BUTTON_GPIO) == HIGH)
     {
-        // TODO deal with case where we've reached the end of the file
+        File markerFile;
+        File quoteFile;
+        int lineNo = 0;
 
-        // TODO format string to fit receipt paper (32 chars/line)
+        // Get line number for next quote, open quote file, scroll to that line
+        markerFile = SPIFFS.open("/marker.txt", "r");
+        lineNo = markerFile.parseInt();
+        markerFile.close();
+
+        quoteFile = SPIFFS.open("/quotes.txt", "r");
+        if (!quoteFile)
+        {
+            Serial.println("Failed to open quote file!");
+            // TODO panic and quit, set a light red, etc.
+        }
+        for (int i = 0; i < lineNo; i++)
+        {
+            quoteFile.readStringUntil('\n');
+        }
 
         // TODO deal with out of paper
+        // TODO troubleshoot "stops working after a while"
 
-        String line = quoteFile.readStringUntil('\n');
+        String line = quoteFile.readStringUntil('\n'); // Read the quote
+        if (line == "")
+        {
+            printer.println("I'm out of quotes! But don't\nworry, I'll start back at the\nbeginning. Press the button\nagain!\n\n\n\n");
+            markerFile = SPIFFS.open("/marker.txt", "w");
+            markerFile.print(0);
+            markerFile.close();
+            return;
+        }
+
         printer.println(prettyFormat(line));
-        line = quoteFile.readStringUntil('\n');
-        printer.println(line);
-        printer.println("\n\n\n\n");
+        line = quoteFile.readStringUntil('\n'); // Read the author
+        printer.println(prettyFormat(line));
+        for (int i = 0; i < NUM_LINES_AFTER_QUOTE; i++)
+        {
+            printer.print('\n');
+        }
 
         lineNo += 2;
         markerFile = SPIFFS.open("/marker.txt", "w");
@@ -122,5 +128,4 @@ void loop()
         markerFile.close();
 
     }
-    delay(15);
 }
