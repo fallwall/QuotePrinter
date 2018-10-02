@@ -1,7 +1,6 @@
 .pioenvs
 .piolibdeps
 .vscode/
-data/
 quotes/
 src/diagnostic.cpp
 .vscode/.browse.c_cpp.db*
