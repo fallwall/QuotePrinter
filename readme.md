@@ -14,7 +14,7 @@ I haven't written a step-by-step tutorial (yet!) on how to create this for yours
   * The thermal printer basically prints whatever it gets from serial input. You use the Adafruit thermal printer library (distributed with this project) to send data from your sketch to the printer. See Adafruit's [tutorial](https://learn.adafruit.com/mini-thermal-receipt-printer) to get started.
 4. Print quotes
   * Upload the `marker.txt` and `quotes.txt` files via the PlatformIO `Upload file system image` button
-  * Upload the this project's sketch
+  * Upload this project's sketch
   * Once the sketch is loaded and the printer is powered on, you can push the button and get a quote. You'll want to add your own quotes so that you don't get bored with the same five quotes over and over.
 
 Note that this project ironically does not use *any* of the ESP8266's wireless capabilities. As such, it's a good intro to the chip and its SPI flash filesystem. An industrious person could extend this to pull and print quotes from the internet without too much added effort.
