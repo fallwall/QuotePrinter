@@ -42,6 +42,6 @@ You will need:
 
 ### Quote File Format
 
-See the [example](data/quotes.txt). Put a quote on one line, then an author, then a quote, etc. If your file starts with line 1, then your quotes will be on even lines, and your authors will be on odd lines.
+See the [example](data/quotes.txt). Put a quote on one line, then an author, then a quote, etc. If your file starts with line 0, then your quotes will be on even lines, and your authors will be on odd lines.
 
 I don't include a big file of quotes for copyright reasons, but some searching and text wrangling can help you put a good quote file together.
